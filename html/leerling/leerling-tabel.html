@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aanwezigheidstabel</title>
+  <script src="leerling.js" defer></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+
+  <nav class="bg-gray-800 p-4 shadow-md">
+  <div class="container ml-auto flex justify-end items-center space-x-3">
+    <span id="username" class="text-white font-medium">Michiel Kalteren</span>
+    <img src="https://i.pravatar.cc/40" alt="Profielfoto" class="w-10 h-10 rounded-full border-2 border-yellow-400" />
+  </div>
+</nav>
+
+  <h1 class="text-2xl font-bold mb-6">Aanwezigheid Overzicht</h1>
+
+  <!-- Filters -->
+  <div class="flex flex-wrap gap-4 mb-6">
+    <!-- Jaar dropdown -->
+    <select id="filterJaar" class="p-2 border rounded shadow-sm">
+      <option value="">Filter op jaar</option>
+      <option value="2024">2024</option>
+      <option value="2025">2025</option>
+    </select>
+
+    <!-- Week dropdown -->
+    <select id="filterWeek" class="p-2 border rounded shadow-sm">
+      <option value="">Filter op week</option>
+      <option value="23">Week 23</option>
+      <option value="24">Week 24</option>
+      <option value="25">Week 25</option>
+    </select>
+
+    <!-- Percentage filter type -->
+    <select id="filterPercentageType" class="p-2 border rounded shadow-sm">
+      <option value="">Percentage</option>
+      <option value="gt">Hoger dan</option>
+      <option value="lt">Lager dan</option>
+      <option value="eq">Gelijk aan</option>
+    </select>
+
+    <!-- Percentage input -->
+    <input type="number" id="filterPercentageValue" placeholder="...%" class="p-2 border rounded shadow-sm w-32" />
+    
+  </div>
+  
+  
+  
+  
+  <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
+    <thead class="bg-gray-800 text-white">
+      <tr>
+        <th class="py-2 px-4">Jaar</th>
+        <th class="py-2 px-4">Week</th>
+        <th class="py-2 px-4">Aanwezigheid</th>
+        <th class="py-2 px-4">Rooster</th>
+        <th class="py-2 px-4">Percentage</th>
+      </tr>
+    </thead>
+    <tbody id="dataBody">
+      <!-- Wordt gevuld door JavaScript -->
+    </tbody>
+  </table>
+  
+<div class="mt-4">
+  <a href="leerling-grafiek.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+    Naar grafiek
+  </a>
+</div>
+
+</body>
+</html>

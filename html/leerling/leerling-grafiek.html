@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grafiek Aanwezigheid</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-8">
+
+  <h1 class="text-2xl font-bold mb-4">Aanwezigheidspercentage</h1>
+
+  <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
+    <canvas id="aanwezigheidChart"></canvas>
+  </div>
+
+  <div class="mt-4">
+  <a href="leerling-tabel.html" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+    Naar tabel
+  </a>
+</div>
+
+  <script src="grafiek.js"></script>
+</body>
+</html>
