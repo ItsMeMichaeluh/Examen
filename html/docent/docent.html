@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Tailwind Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Teacher Attendance Dashboard</title>
+  </head>
+  <body class="min-h-screen bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-white shadow">
+      <div
+        class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center"
+      >
+        <div class="text-2xl font-semibold text-gray-800">
+          Teacher Dashboard
+        </div>
+        <div class="flex items-center space-x-3">
+          <span class="text-gray-700 font-medium">John Doe</span>
+          <img
+            src="https://via.placeholder.com/40"
+            alt="Profile"
+            class="h-10 w-10 rounded-full object-cover"
+          />
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+      <!-- Top Controls: Import Button, Search, Filter -->
+      <div
+        class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0"
+      >
+        <!-- Import Button -->
+        <div>
+          <button
+            class="bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Import
+          </button>
+        </div>
+
+        <!-- Search & Filter -->
+        <div
+          class="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full sm:w-auto"
+        >
+          <!-- Search Field -->
+          <div class="w-full sm:w-auto">
+            <input
+              type="text"
+              placeholder="Search students..."
+              class="w-full sm:w-64 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+
+          <!-- Filter Dropdown -->
+          <div>
+            <select
+              class="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="">Filter by Presence %</option>
+              <option value=">100">(>100%)</option>
+              <option value="95-99">(95-99%)</option>
+              <option value="80-94">(80-94%)</option>
+              <option value="65-79">(65-79%)</option>
+              <option value="50-64">(50-64%)</option>
+              <option value="<50">(<50%)</option>
+              <option value="0">(0%)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Student List Table -->
+      <div class="bg-white shadow rounded-lg overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                #
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Student Name
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Presence %
+              </th>
+              <th
+                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Mark Present
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <!-- Example Row -->
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                1
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                Alice Smith
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                92%
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-center">
+                <input
+                  type="checkbox"
+                  class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+              </td>
+            </tr>
+            <!-- Repeat similar rows dynamically -->
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                2
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                Bob Johnson
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                78%
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-center">
+                <input
+                  type="checkbox"
+                  class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+              </td>
+            </tr>
+
+            <!-- Add more rows as needed -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Export PDF Button at Bottom Left -->
+      <div class="mt-6">
+        <button
+          class="bg-green-600 text-white px-4 py-2 rounded-md shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          Export PDF
+        </button>
+      </div>
+    </div>
+  </body>
+</html>
