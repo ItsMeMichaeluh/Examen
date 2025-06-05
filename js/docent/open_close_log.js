@@ -1,23 +1,24 @@
+// js/docent/open_close_log.js
+
 document.addEventListener("DOMContentLoaded", () => {
   const openBtn = document.getElementById("openLogModal");
   const closeBtn = document.getElementById("closeLogModal");
   const modal = document.getElementById("logModal");
 
-  function showModal() {
+  if (!openBtn || !closeBtn || !modal) return;
+
+  openBtn.addEventListener("click", () => {
     modal.classList.remove("hidden");
-  }
+  });
 
-  function hideModal() {
+  closeBtn.addEventListener("click", () => {
     modal.classList.add("hidden");
-  }
+  });
 
-  openBtn.addEventListener("click", showModal);
-  closeBtn.addEventListener("click", hideModal);
-
-  // Sluit modal als gebruiker op de donkere overlay klikt
+  // Clicking outside the white dialog (on the overlay) also closes it
   modal.addEventListener("click", (e) => {
     if (e.target === modal) {
-      hideModal();
+      modal.classList.add("hidden");
     }
   });
 });
