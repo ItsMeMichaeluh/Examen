@@ -1,27 +1,27 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const ctx = document.getElementById("attendanceTrendChart").getContext("2d");
+  const canvas = document.getElementById("attendanceTrendChart");
+  if (!canvas) return;
 
+  const ctx = canvas.getContext("2d");
   const labels = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag"];
-  const dataValues = [85, 78, 92, 88, 80]; // Vervang door werkelijke data
+  const dataValues = [85, 78, 92, 88, 80];
 
-  const data = {
-    labels: labels,
-    datasets: [
-      {
-        label: "Gem. Aanwezigheid (%)",
-        data: dataValues,
-        fill: false,
-        borderColor: "#3B82F6", // Tailwind-blue-500
-        tension: 0.4,
-        pointBackgroundColor: "#3B82F6",
-        pointRadius: 4,
-      },
-    ],
-  };
-
-  const config = {
+  new Chart(ctx, {
     type: "line",
-    data: data,
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Gem. Aanwezigheid (%)",
+          data: dataValues,
+          fill: false,
+          borderColor: "#3B82F6",
+          tension: 0.4,
+          pointBackgroundColor: "#3B82F6",
+          pointRadius: 4,
+        },
+      ],
+    },
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -43,7 +43,5 @@ document.addEventListener("DOMContentLoaded", () => {
         },
       },
     },
-  };
-
-  new Chart(ctx, config);
+  });
 });
