@@ -8,8 +8,36 @@ document.addEventListener("DOMContentLoaded", () => {
     .get("http://145.14.158.244:8000/api/students")
     .then((resp) => {
       allStudents = resp.data.member || [];
+
+      // === Extract unique years & (year-week) pairs ===
+      const { uniqueYears, uniqueYearWeeks } =
+        extractYearsAndWeeks(allStudents);
+
+      // === Populate <select id="jaar-select"> ===
+      const yearSelect = document.getElementById("jaar-select");
+      if (yearSelect) {
+        yearSelect.innerHTML = `<option value="">Alle Jaren</option>`;
+        uniqueYears.forEach((yr) => {
+          yearSelect.innerHTML += `<option value="${yr}">${yr}</option>`;
+        });
+      }
+
+      // === Populate <select id="week-select"> ===
+      const weekSelect = document.getElementById("week-select");
+      if (weekSelect) {
+        weekSelect.innerHTML = `<option value="">Alle Weken</option>`;
+        uniqueYearWeeks.forEach((str) => {
+          const [y, w] = str.split("-").map((x) => parseInt(x, 10));
+          weekSelect.innerHTML += `
+            <option value="${str}">${y} – Week ${w}</option>
+          `;
+        });
+      }
+
+      // === Now render the full table & wire up the rest ===
       renderStudentTable(allStudents);
       attachDetailButtonListeners();
+      setupFiltersAndListeners();
     })
     .catch((err) => {
       console.error("Error fetching /api/students:", err);
@@ -37,9 +65,147 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /**
- * Returns a pseudo‐random “fake” name (First Last) for any given studentNumber.
- * We hash the string to a number, then pick a first name and last name from arrays.
- * This ensures each studentNumber always maps to the same fake name.
+ * When any filter/search input changes, this function re-applies all four filters.
+ */
+function applyFilters() {
+  const query = document
+    .getElementById("studentSearch")
+    .value.trim()
+    .toLowerCase();
+  const weekValue = document.getElementById("week-select").value; // "2024-42" or ""
+  const yearValue = document.getElementById("jaar-select").value; // "2024" or ""
+  const catValue = document.getElementById("category-filter").value; // "Goed", etc.
+
+  // Build a filtered array:
+  const filtered = allStudents.filter((stu) => {
+    // 1) Search by studentNumber substring:
+    if (query && !stu.studentNumber.toLowerCase().includes(query)) {
+      return false;
+    }
+
+    // 2) Find that student’s “latest attendance”:
+    let latestAtt = null;
+    (stu.attendances || []).forEach((a) => {
+      if (!latestAtt) {
+        latestAtt = a;
+      } else {
+        if (a.year > latestAtt.year) {
+          latestAtt = a;
+        } else if (a.year === latestAtt.year && a.week > latestAtt.week) {
+          latestAtt = a;
+        }
+      }
+    });
+
+    // If no attendance exists:
+    if (!latestAtt) {
+      // If any of the attendance-dependent filters is non-empty, exclude:
+      if (weekValue || yearValue || catValue) return false;
+      return true;
+    }
+
+    // 3) Week filter (if set)
+    if (weekValue) {
+      const [selYear, selWeek] = weekValue.split("-").map(Number);
+      if (latestAtt.year !== selYear || latestAtt.week !== selWeek) {
+        return false;
+      }
+    }
+
+    // 4) Year filter (if set)
+    if (yearValue) {
+      if (latestAtt.year !== Number(yearValue)) {
+        return false;
+      }
+    }
+
+    // 5) Category filter (if set)
+    if (catValue) {
+      const pct =
+        latestAtt.scheduled > 0
+          ? Math.round((latestAtt.logged / latestAtt.scheduled) * 100)
+          : 0;
+      const catLabel = getCategoryLabel(pct);
+      if (catLabel !== catValue) {
+        return false;
+      }
+    }
+
+    // Passed all filters
+    return true;
+  });
+
+  // Re-render the filtered list
+  renderStudentTable(filtered);
+  attachDetailButtonListeners();
+}
+
+/**
+ * If you want all four controls to fire `applyFilters()`, set them up here.
+ */
+function setupFiltersAndListeners() {
+  const searchInput = document.getElementById("studentSearch");
+  const weekSelect = document.getElementById("week-select");
+  const yearSelect = document.getElementById("jaar-select");
+  const categorySel = document.getElementById("category-filter");
+
+  [searchInput, weekSelect, yearSelect, categorySel].forEach((el) => {
+    if (!el) return;
+    el.addEventListener("input", applyFilters);
+    el.addEventListener("change", applyFilters);
+  });
+}
+
+/**
+ * Given students[], return two sorted lists:
+ *   - uniqueYears:    [2024, 2025, …]
+ *   - uniqueYearWeeks: ["2024-42","2024-43",…,"2025-21"]
+ */
+function extractYearsAndWeeks(students) {
+  const yearSet = new Set();
+  const yearWeekSet = new Set();
+
+  students.forEach((stu) => {
+    (stu.attendances || []).forEach((att) => {
+      const y = parseInt(att.year, 10);
+      const w = parseInt(att.week, 10);
+      if (!isNaN(y)) {
+        yearSet.add(y);
+        if (!isNaN(w)) {
+          yearWeekSet.add(`${y}-${w}`);
+        }
+      }
+    });
+  });
+
+  const uniqueYears = Array.from(yearSet).sort((a, b) => a - b);
+  const uniqueYearWeeks = Array.from(yearWeekSet)
+    .map((str) => {
+      const [y, w] = str.split("-").map((x) => parseInt(x, 10));
+      return { year: y, week: w, key: str };
+    })
+    .sort((a, b) => a.year - b.year || a.week - b.week)
+    .map((obj) => obj.key);
+
+  return { uniqueYears, uniqueYearWeeks };
+}
+
+/**
+ * Return one of your category labels for a given percentage 0–100.
+ */
+function getCategoryLabel(pct) {
+  if (pct >= 100) return "Perfect";
+  if (pct >= 95) return "Excellent";
+  if (pct >= 80) return "Goed";
+  if (pct >= 65) return "Voldoende";
+  if (pct >= 50) return "Onvoldoende";
+  if (pct > 0) return "Kritiek";
+  return "Geen Aanwezigheid";
+}
+
+/**
+ * Generate a fake “First Last” name from a studentNumber, so each student
+ * looks plausible even though you don’t have real names in your data.
  */
 function generateFakeName(studentNumber) {
   const firstNames = [
@@ -52,12 +218,12 @@ function generateFakeName(studentNumber) {
     "Tess",
     "Noah",
     "Eva",
-    "Task",
     "Mila",
     "Finn",
     "Sara",
     "Sem",
     "Lotte",
+    "Sam",
   ];
   const lastNames = [
     "Jansen",
@@ -77,27 +243,20 @@ function generateFakeName(studentNumber) {
     "Koopman",
   ];
 
-  // Simple hash: sum of char codes
   let hash = 0;
   for (let i = 0; i < studentNumber.length; i++) {
     hash = (hash << 5) - hash + studentNumber.charCodeAt(i);
-    hash |= 0; // bitwise to keep it 32-bit
+    hash |= 0; // keep 32-bit
   }
-  // Make positive
   hash = Math.abs(hash);
 
   const firstIndex = hash % firstNames.length;
   const lastIndex = Math.floor(hash / firstNames.length) % lastNames.length;
-
   return `${firstNames[firstIndex]} ${lastNames[lastIndex]}`;
 }
 
 /**
- * Renders an array of Student objects into <tbody id="studentTableBody">.
- * Each student object has:
- *   - studentNumber: string
- *   - active: boolean
- *   - attendances: [ { year, week, scheduled, logged }, … ]
+ * Render an array of Student objects into the <tbody id="studentTableBody">.
  */
 function renderStudentTable(students) {
   const tbody = document.getElementById("studentTableBody");
@@ -116,24 +275,21 @@ function renderStudentTable(students) {
 
   students.forEach((stu) => {
     const studentNumber = stu.studentNumber || "—";
-    // Generate a fake name based on studentNumber:
     const name = generateFakeName(studentNumber);
 
-    // Find the “latest” attendance record by (year, week):
+    // Find the “latest” attendance:
     let latestAtt = null;
     (stu.attendances || []).forEach((a) => {
       if (!latestAtt) {
         latestAtt = a;
-      } else {
-        if (a.year > latestAtt.year) {
-          latestAtt = a;
-        } else if (a.year === latestAtt.year && a.week > latestAtt.week) {
-          latestAtt = a;
-        }
+      } else if (a.year > latestAtt.year) {
+        latestAtt = a;
+      } else if (a.year === latestAtt.year && a.week > latestAtt.week) {
+        latestAtt = a;
       }
     });
 
-    // Default placeholders if no attendance:
+    // Default placeholders:
     let pctText = "—",
       logged = "—",
       scheduled = "—",
@@ -148,7 +304,7 @@ function renderStudentTable(students) {
           : 0;
       pctText = pct + "%";
 
-      // Determine category:
+      // Determine category from pct:
       if (pct >= 100) category = "Perfect";
       else if (pct >= 95) category = "Excellent";
       else if (pct >= 80) category = "Goed";
@@ -158,34 +314,19 @@ function renderStudentTable(students) {
       else category = "Geen Aanwezigheid";
     }
 
-    // Build the table row, including a “Details” button with data-student-number:
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-        ${studentNumber}
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-        ${name}
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">
-        ${pctText}
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-        ${logged}
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-        ${scheduled}
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-        ${category}
-      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${studentNumber}</td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${name}</td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">${pctText}</td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${logged}</td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${scheduled}</td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${category}</td>
       <td class="px-3 py-2 whitespace-nowrap text-right text-sm">
         <button
           class="details-btn text-indigo-600 hover:text-indigo-900 font-medium"
           data-student-number="${studentNumber}"
-        >
-          Details
-        </button>
+        >Details</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -193,8 +334,7 @@ function renderStudentTable(students) {
 }
 
 /**
- * After rendering the table, attach a click handler to every .details-btn.
- * When clicked, show the “Student Details” panel and populate it with the correct data.
+ * Attach click listeners to every “Details” button so the modal opens + populates.
  */
 function attachDetailButtonListeners() {
   const buttons = document.querySelectorAll(".details-btn");
@@ -203,13 +343,14 @@ function attachDetailButtonListeners() {
       const studentNumber = btn.getAttribute("data-student-number");
       if (!studentNumber) return;
 
-      // Find that student in allStudents:
+      // Find the matching student object:
       const stu = allStudents.find((s) => s.studentNumber === studentNumber);
       if (!stu) return;
 
-      // 1) Unhide the modal:
-      const container = document.getElementById("studentDetailsContainer");
-      container.classList.remove("hidden");
+      // 1) Show the modal:
+      document
+        .getElementById("studentDetailsContainer")
+        .classList.remove("hidden");
 
       // 2) Fill in studentNumber + active:
       document.getElementById("detailStudentNumber").textContent =
@@ -218,25 +359,21 @@ function attachDetailButtonListeners() {
         ? "Yes"
         : "No";
 
-      // 3) Populate the attendance table body (#detailAttendanceBody):
+      // 3) Fill in full attendance history:
       const tbody = document.getElementById("detailAttendanceBody");
       tbody.innerHTML = "";
-
-      // Sort by year→week ascending (optional), so oldest first:
       const sorted = (stu.attendances || []).slice().sort((a, b) => {
         if (a.year !== b.year) return a.year - b.year;
         return a.week - b.week;
       });
 
       if (sorted.length === 0) {
-        // If no records, show a “no attendance” row
         tbody.innerHTML = `
           <tr>
             <td colspan="5" class="px-3 py-2 text-sm text-gray-500 text-center">
               Geen aanwezigheidsdata.
             </td>
-          </tr>
-        `;
+          </tr>`;
       } else {
         sorted.forEach((att) => {
           const pct =

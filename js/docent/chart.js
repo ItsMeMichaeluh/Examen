@@ -36,7 +36,7 @@ function initAttendanceChart(initialData, initialLabels) {
       scales: {
         y: {
           beginAtZero: true,
-          max: 100,
+          max: 120,
           ticks: {
             callback: (value) => value + "%",
           },
