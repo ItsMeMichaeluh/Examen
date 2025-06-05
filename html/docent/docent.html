@@ -7,6 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN (must be loaded before chart.js) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Axios CDN (for your API calls) -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
     <title>AARDATA Docent Dashboard</title>
   </head>
   <body class="min-h-screen bg-gray-100">
@@ -103,8 +106,9 @@
         </div>
       </div>
 
-      <!-- 2. Summary Stats Cards -->
+      <!-- 2. Summary Stats Cards (wrap values in <span id=""> to update them later) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+        <!-- Card: Total # Students -->
         <div
           class="bg-white shadow rounded-lg p-4 flex items-center space-x-3 w-full"
         >
@@ -125,10 +129,14 @@
             </svg>
           </div>
           <div>
-            <p class="text-xl font-semibold text-gray-800">120</p>
+            <p class="text-xl font-semibold text-gray-800">
+              <span id="totalStudents">0</span>
+            </p>
             <p class="text-gray-500 text-sm">Totaal # Studenten</p>
           </div>
         </div>
+
+        <!-- Card: Avg. Attendance -->
         <div
           class="bg-white shadow rounded-lg p-4 flex items-center space-x-3 w-full"
         >
@@ -149,10 +157,14 @@
             </svg>
           </div>
           <div>
-            <p class="text-xl font-semibold text-gray-800">82%</p>
+            <p class="text-xl font-semibold text-gray-800">
+              <span id="avgAttendance">0%</span>
+            </p>
             <p class="text-gray-500 text-sm">Gem. Aanwezigheid</p>
           </div>
         </div>
+
+        <!-- Card: Students <65% -->
         <div
           class="bg-white shadow rounded-lg p-4 flex items-center space-x-3 w-full"
         >
@@ -173,10 +185,14 @@
             </svg>
           </div>
           <div>
-            <p class="text-xl font-semibold text-gray-800">8</p>
-            <p class="text-gray-500 text-sm">Studenten &lt; 65%</p>
+            <p class="text-xl font-semibold text-gray-800">
+              <span id="studentsUnder65">0</span>
+            </p>
+            <p class="text-gray-500 text-sm">Studenten < 65%</p>
           </div>
         </div>
+
+        <!-- Card: Current Week (static) -->
         <div
           class="bg-white shadow rounded-lg p-4 flex items-center space-x-3 w-full"
         >
@@ -197,95 +213,120 @@
             </svg>
           </div>
           <div>
-            <p class="text-xl font-semibold text-gray-800">W21 - 2025</p>
+            <p class="text-xl font-semibold text-gray-800">W21 – 2025</p>
             <p class="text-gray-500 text-sm">Huidige Week</p>
           </div>
         </div>
       </div>
 
-      <!-- 3. Side-by-Side: Student Table & Attendance per Dag Chart -->
+      <!-- 3. Side-by-Side: Search Bar + Student Table & Attendance per Dag Chart -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-        <!-- Student Table -->
-        <div class="bg-white shadow rounded-lg p-4 w-full">
-          <h3 class="text-lg font-medium text-gray-700 mb-4">Studentenlijst</h3>
-          <div class="overflow-x-auto">
-            <table class="min-w-full bg-white table-auto">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th
-                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
-                  >
-                    Studentnummer
-                  </th>
-                  <th
-                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
-                  >
-                    Naam
-                  </th>
-                  <th
-                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
-                  >
-                    Aanwezigheid (%)
-                  </th>
-                  <th
-                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
-                  >
-                    Minuten Aanw.
-                  </th>
-                  <th
-                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
-                  >
-                    Rooster (min)
-                  </th>
-                  <th
-                    class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
-                  >
-                    Categorie
-                  </th>
-                  <th class="px-3 py-2"></th>
-                </tr>
-              </thead>
-              <tbody id="studentTableBody" class="divide-y divide-gray-200">
-                <!-- Sample row (will be replaced by student_fetch.js) -->
-                <tr>
-                  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-                    st001
-                  </td>
-                  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-                    Jan de Vries
-                  </td>
-                  <td
-                    class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800"
-                  >
-                    92%
-                  </td>
-                  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-                    1380
-                  </td>
-                  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-                    1500
-                  </td>
-                  <td class="px-3 py-2 whitespace-nowrap">
-                    <span
-                      class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full"
-                      >Goed</span
+        <!-- Left side: Search + Table -->
+        <div class="space-y-4 w-full">
+          <!-- 3a) Search Box -->
+          <div class="flex items-center space-x-2">
+            <label for="studentSearch" class="text-gray-700 font-medium"
+              >Zoek Student:</label
+            >
+            <input
+              id="studentSearch"
+              type="text"
+              placeholder="Bijv. st1121615364"
+              class="block w-64 px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <!-- 3b) Student Table -->
+          <div class="bg-white shadow rounded-lg p-4 w-full">
+            <h3 class="text-lg font-medium text-gray-700 mb-4">
+              Studentenlijst
+            </h3>
+            <div class="overflow-x-auto">
+              <table class="min-w-full bg-white table-auto">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th
+                      class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                     >
-                  </td>
-                  <td class="px-3 py-2 whitespace-nowrap text-right text-sm">
-                    <button
-                      class="text-indigo-600 hover:text-indigo-900 font-medium"
+                      Studentnummer
+                    </th>
+                    <th
+                      class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                     >
-                      Details
-                    </button>
-                  </td>
-                </tr>
-                <!-- Je kunt deze rij laten staan als placeholder of weghalen -->
-              </tbody>
-            </table>
+                      Naam
+                    </th>
+                    <th
+                      class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                    >
+                      Aanwezigheid (%)
+                    </th>
+                    <th
+                      class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                    >
+                      Minuten Aanw.
+                    </th>
+                    <th
+                      class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                    >
+                      Rooster (min)
+                    </th>
+                    <th
+                      class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                    >
+                      Categorie
+                    </th>
+                    <th class="px-3 py-2"></th>
+                  </tr>
+                </thead>
+                <tbody id="studentTableBody" class="divide-y divide-gray-200">
+                  <!-- This row will be replaced by student_fetch.js -->
+                  <tr>
+                    <td
+                      class="px-3 py-2 whitespace-nowrap text-sm text-gray-700"
+                    >
+                      st001
+                    </td>
+                    <td
+                      class="px-3 py-2 whitespace-nowrap text-sm text-gray-700"
+                    >
+                      Jan de Vries
+                    </td>
+                    <td
+                      class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800"
+                    >
+                      92%
+                    </td>
+                    <td
+                      class="px-3 py-2 whitespace-nowrap text-sm text-gray-700"
+                    >
+                      1380
+                    </td>
+                    <td
+                      class="px-3 py-2 whitespace-nowrap text-sm text-gray-700"
+                    >
+                      1500
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap">
+                      <span
+                        class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full"
+                        >Goed</span
+                      >
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-right text-sm">
+                      <button
+                        class="text-indigo-600 hover:text-indigo-900 font-medium"
+                      >
+                        Details
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <!-- Attendance per Dag Chart -->
+        <!-- Right side: Attendance per Dag Chart -->
         <div class="bg-white shadow rounded-lg p-4 w-full flex flex-col">
           <h2 class="text-lg font-medium text-gray-700 mb-4">
             Aanwezigheid per Dag (Deze Week)
@@ -465,9 +506,9 @@
       </div>
     </div>
 
-    <!-- Load our two JavaScript files instead of the inline block -->
-    <!-- CORRECT when the server root is Examen/html -->
+    <!-- Load our JS files -->
     <script src="/js/docent/chart.js"></script>
     <script src="/js/docent/open_close_log.js"></script>
+    <script src="/js/docent/student_fetch.js"></script>
   </body>
 </html>
