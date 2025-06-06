@@ -54,11 +54,11 @@
         </button>
       </div>
 
-      <!-- 1. Top Bar: Week & Year Selectors + Category Filter -->
+      <!-- 1. Top Bar: Week Selector + Year Selector + Min/Max Percentage Inputs -->
       <div
         class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0 w-full"
       >
-        <!-- Week Selector -->
+        <!-- Week Selector (unchanged) -->
         <div class="flex items-center space-x-2">
           <label for="week-select" class="text-gray-700 font-medium"
             >Selecteer Week:</label
@@ -69,7 +69,7 @@
           ></select>
         </div>
 
-        <!-- Year Selector -->
+        <!-- Year Selector (unchanged) -->
         <div class="flex items-center space-x-2">
           <label for="jaar-select" class="text-gray-700 font-medium"
             >Selecteer Jaar:</label
@@ -80,24 +80,34 @@
           ></select>
         </div>
 
-        <!-- Category Filter -->
+        <!-- NEW: Min/Max Percentage Inputs -->
         <div class="flex items-center space-x-2">
-          <label for="category-filter" class="text-gray-700 font-medium"
-            >Filter Categorie:</label
+          <label for="min-percentage" class="text-gray-700 font-medium"
+            >Min %:</label
           >
-          <select
-            id="category-filter"
-            class="block w-44 px-2 py-1 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <input
+            id="min-percentage"
+            type="number"
+            min="0"
+            max="200"
+            step="1"
+            placeholder="15"
+            class="border px-2 py-1 rounded-md w-20"
+          />
+          <span class="text-gray-700">–</span>
+          <label for="max-percentage" class="text-gray-700 font-medium"
+            >Max %:</label
           >
-            <option value="">Alle Categorieën</option>
-            <option value="Perfect">Perfect (≥100%)</option>
-            <option value="Excellent">Excellent (95–99%)</option>
-            <option value="Goed">Goed (80–94%)</option>
-            <option value="Voldoende">Voldoende (65–79%)</option>
-            <option value="Onvoldoende">Onvoldoende (50–64%)</option>
-            <option value="Kritiek">Kritiek (<50%)</option>
-            <option value="Geen Aanwezigheid">Geen Aanwezigheid (0%)</option>
-          </select>
+          <input
+            id="max-percentage"
+            type="number"
+            min="0"
+            max="200"
+            step="1"
+            placeholder="19"
+            class="border px-2 py-1 rounded-md w-20"
+          />
+          <span class="text-gray-700">%</span>
         </div>
       </div>
 

@@ -1,5 +1,3 @@
-// js/docent/chart.js
-
 let attendanceChart = null;
 
 /**
