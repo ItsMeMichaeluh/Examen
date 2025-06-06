@@ -157,24 +157,40 @@ function renderStudentTable(students) {
     // Convert category to CSS class, e.g. “mark-goed”
     const cssClass = "mark-" + category.toLowerCase().replace(/\s+/g, "-");
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${studentNumber}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${name}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">${pctText}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${logged}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${scheduled}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm">
-        <span class="category-badge ${cssClass}">${category}</span>
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-right text-sm">
-        <button
-          class="details-btn text-indigo-600 hover:text-indigo-900 font-medium"
-          data-student-number="${studentNumber}"
-        >Details</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
+const tr = document.createElement("tr");
+tr.innerHTML = `
+  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 flex items-center space-x-2">
+    <input type="checkbox" class="student-checkbox" data-student-number="${studentNumber}" />
+    <span>${studentNumber}</span>
+  </td>
+  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+    ${name}
+  </td>
+  <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">
+    ${pctText}
+  </td>
+  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+    ${logged}
+  </td>
+  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+    ${scheduled}
+  </td>
+  <td class="px-3 py-2 whitespace-nowrap text-sm">
+    <span class="category-badge ${cssClass}">
+      ${category}
+    </span>
+  </td>
+  <td class="px-3 py-2 whitespace-nowrap text-right text-sm">
+    <button
+      class="details-btn text-indigo-600 hover:text-indigo-900 font-medium"
+      data-student-number="${studentNumber}"
+    >
+      Details
+    </button>
+  </td>
+`;
+tbody.appendChild(tr);
+
   });
 }
 
