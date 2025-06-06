@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (percentage < 80) {
         score = 'Voldoende'; bgColor = '#ffe066';
       } else if (percentage < 95) {
-        score = 'Goed'; bgColor = '#c0e85d';
+        score = 'Goed'; bgColor = '#add8e6';
       } else if (percentage < 100) {
         score = 'Excellent'; bgColor = '#7ddc6e';
       } else {

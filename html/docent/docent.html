@@ -79,11 +79,10 @@
     <div class="w-full p-6 space-y-8">
       <!-- Import & Export Buttons Row -->
       <div class="flex items-center space-x-2">
-        <button
-          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          Import AAR
-        </button>
+        <input type="file" id="fileInput" accept=".xlsx" />
+        <button id="importBtn" class="bg-blue-600 text-white px-4 py-2 rounded">Importeer Excel</button>
+        <div id="status"></div>
+
         <button
           class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
         >
@@ -649,6 +648,7 @@
     </div>
 
     <!-- Load our JS files -->
+     <script src="/js/docent/import.js"></script>
     <script src="/js/docent/chart.js"></script>
     <script src="/js/docent/open_close_log.js"></script>
     <script src="/js/docent/student_fetch.js"></script>
