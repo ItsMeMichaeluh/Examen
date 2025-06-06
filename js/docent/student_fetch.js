@@ -1,165 +1,12 @@
 // js/docent/student_fetch.js
 
-let allStudents = [];
-
-document.addEventListener("DOMContentLoaded", () => {
-  // 1) Fetch ALL students from the API:
-  axios
-    .get("http://145.14.158.244:8000/api/students")
-    .then((resp) => {
-      allStudents = resp.data.member || [];
-
-      // === Extract unique years & (year-week) pairs ===
-      const { uniqueYears, uniqueYearWeeks } =
-        extractYearsAndWeeks(allStudents);
-
-      // === Populate <select id="jaar-select"> ===
-      const yearSelect = document.getElementById("jaar-select");
-      if (yearSelect) {
-        yearSelect.innerHTML = `<option value="">Alle Jaren</option>`;
-        uniqueYears.forEach((yr) => {
-          yearSelect.innerHTML += `<option value="${yr}">${yr}</option>`;
-        });
-      }
-
-      // === Populate <select id="week-select"> ===
-      const weekSelect = document.getElementById("week-select");
-      if (weekSelect) {
-        weekSelect.innerHTML = `<option value="">Alle Weken</option>`;
-        uniqueYearWeeks.forEach((str) => {
-          const [y, w] = str.split("-").map((x) => parseInt(x, 10));
-          weekSelect.innerHTML += `
-            <option value="${str}">${y} – Week ${w}</option>
-          `;
-        });
-      }
-
-      // === Now render the full table & wire up the rest ===
-      renderStudentTable(allStudents);
-      attachDetailButtonListeners();
-      setupFiltersAndListeners();
-    })
-    .catch((err) => {
-      console.error("Error fetching /api/students:", err);
-      const tbody = document.getElementById("studentTableBody");
-      if (tbody) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="7" class="px-3 py-2 text-sm text-red-600 text-center">
-              Failed to load students.
-            </td>
-          </tr>
-        `;
-      }
-    });
-
-  // 2) Wire up the “close” button on the details modal:
-  const closeBtn = document.getElementById("closeStudentDetails");
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      document
-        .getElementById("studentDetailsContainer")
-        .classList.add("hidden");
-    });
-  }
-});
+// --------------------------
+// Helper Functions
+// --------------------------
 
 /**
- * When any filter/search input changes, this function re-applies all four filters.
- */
-function applyFilters() {
-  const query = document
-    .getElementById("studentSearch")
-    .value.trim()
-    .toLowerCase();
-  const weekValue = document.getElementById("week-select").value; // "2024-42" or ""
-  const yearValue = document.getElementById("jaar-select").value; // "2024" or ""
-  const catValue = document.getElementById("category-filter").value; // "Goed", etc.
-
-  // Build a filtered array:
-  const filtered = allStudents.filter((stu) => {
-    // 1) Search by studentNumber substring:
-    if (query && !stu.studentNumber.toLowerCase().includes(query)) {
-      return false;
-    }
-
-    // 2) Find that student’s “latest attendance”:
-    let latestAtt = null;
-    (stu.attendances || []).forEach((a) => {
-      if (!latestAtt) {
-        latestAtt = a;
-      } else {
-        if (a.year > latestAtt.year) {
-          latestAtt = a;
-        } else if (a.year === latestAtt.year && a.week > latestAtt.week) {
-          latestAtt = a;
-        }
-      }
-    });
-
-    // If no attendance exists:
-    if (!latestAtt) {
-      // If any of the attendance-dependent filters is non-empty, exclude:
-      if (weekValue || yearValue || catValue) return false;
-      return true;
-    }
-
-    // 3) Week filter (if set)
-    if (weekValue) {
-      const [selYear, selWeek] = weekValue.split("-").map(Number);
-      if (latestAtt.year !== selYear || latestAtt.week !== selWeek) {
-        return false;
-      }
-    }
-
-    // 4) Year filter (if set)
-    if (yearValue) {
-      if (latestAtt.year !== Number(yearValue)) {
-        return false;
-      }
-    }
-
-    // 5) Category filter (if set)
-    if (catValue) {
-      const pct =
-        latestAtt.scheduled > 0
-          ? Math.round((latestAtt.logged / latestAtt.scheduled) * 100)
-          : 0;
-      const catLabel = getCategoryLabel(pct);
-      if (catLabel !== catValue) {
-        return false;
-      }
-    }
-
-    // Passed all filters
-    return true;
-  });
-
-  // Re-render the filtered list
-  renderStudentTable(filtered);
-  attachDetailButtonListeners();
-}
-
-/**
- * If you want all four controls to fire `applyFilters()`, set them up here.
- */
-function setupFiltersAndListeners() {
-  const searchInput = document.getElementById("studentSearch");
-  const weekSelect = document.getElementById("week-select");
-  const yearSelect = document.getElementById("jaar-select");
-  const categorySel = document.getElementById("category-filter");
-
-  [searchInput, weekSelect, yearSelect, categorySel].forEach((el) => {
-    if (!el) return;
-    el.addEventListener("input", applyFilters);
-    el.addEventListener("change", applyFilters);
-  });
-}
-
-/**
- * Given students[], return two sorted lists:
- *   - uniqueYears:    [2024, 2025, …]
- *   - uniqueYearWeeks: ["2024-42","2024-43",…,"2025-21"]
+ * Extracts unique years and year-week pairs from all students' attendance data.
+ * Returns { uniqueYears: [2024, 2025, …], uniqueYearWeeks: ["2024-42", …] }.
  */
 function extractYearsAndWeeks(students) {
   const yearSet = new Set();
@@ -191,21 +38,8 @@ function extractYearsAndWeeks(students) {
 }
 
 /**
- * Return one of your category labels for a given percentage 0–100.
- */
-function getCategoryLabel(pct) {
-  if (pct >= 100) return "Perfect";
-  if (pct >= 95) return "Excellent";
-  if (pct >= 80) return "Goed";
-  if (pct >= 65) return "Voldoende";
-  if (pct >= 50) return "Onvoldoende";
-  if (pct > 0) return "Kritiek";
-  return "Geen Aanwezigheid";
-}
-
-/**
- * Generate a fake “First Last” name from a studentNumber, so each student
- * looks plausible even though you don’t have real names in your data.
+ * Generates a fake “First Last” name from a studentNumber string.
+ * Used so that every student row shows a plausible name.
  */
 function generateFakeName(studentNumber) {
   const firstNames = [
@@ -246,7 +80,7 @@ function generateFakeName(studentNumber) {
   let hash = 0;
   for (let i = 0; i < studentNumber.length; i++) {
     hash = (hash << 5) - hash + studentNumber.charCodeAt(i);
-    hash |= 0; // keep 32-bit
+    hash |= 0;
   }
   hash = Math.abs(hash);
 
@@ -255,8 +89,13 @@ function generateFakeName(studentNumber) {
   return `${firstNames[firstIndex]} ${lastNames[lastIndex]}`;
 }
 
+// --------------------------
+// Rendering Functions
+// --------------------------
+
 /**
- * Render an array of Student objects into the <tbody id="studentTableBody">.
+ * Renders an array of student objects into <tbody id="studentTableBody">.
+ * Each row shows studentNumber, name, most recent percentage, logged, scheduled, and a "Details" button.
  */
 function renderStudentTable(students) {
   const tbody = document.getElementById("studentTableBody");
@@ -277,7 +116,7 @@ function renderStudentTable(students) {
     const studentNumber = stu.studentNumber || "—";
     const name = generateFakeName(studentNumber);
 
-    // Find the “latest” attendance:
+    // Find the latest attendance record
     let latestAtt = null;
     (stu.attendances || []).forEach((a) => {
       if (!latestAtt) {
@@ -289,22 +128,19 @@ function renderStudentTable(students) {
       }
     });
 
-    // Default placeholders:
+    // Default placeholders
     let pctText = "—",
       logged = "—",
       scheduled = "—",
-      category = "—";
+      category = "Geen Aanwezigheid";
 
     if (latestAtt) {
       logged = latestAtt.logged;
       scheduled = latestAtt.scheduled;
-      const pct =
-        latestAtt.scheduled > 0
-          ? Math.round((latestAtt.logged / latestAtt.scheduled) * 100)
-          : 0;
+      const pct = scheduled > 0 ? Math.round((logged / scheduled) * 100) : 0;
       pctText = pct + "%";
 
-      // Determine category from pct:
+      // Determine category label from percentage
       if (pct >= 100) category = "Perfect";
       else if (pct >= 95) category = "Excellent";
       else if (pct >= 80) category = "Goed";
@@ -314,19 +150,38 @@ function renderStudentTable(students) {
       else category = "Geen Aanwezigheid";
     }
 
+    // Convert category label into CSS class, e.g. "Goed" → "mark-goed"
+    const cssClass = "mark-" + category.toLowerCase().replace(/\s+/g, "-");
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${studentNumber}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${name}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">${pctText}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${logged}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${scheduled}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${category}</td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+        ${studentNumber}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+        ${name}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">
+        ${pctText}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+        ${logged}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+        ${scheduled}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm">
+        <span class="category-badge ${cssClass}">
+          ${category}
+        </span>
+      </td>
       <td class="px-3 py-2 whitespace-nowrap text-right text-sm">
         <button
           class="details-btn text-indigo-600 hover:text-indigo-900 font-medium"
           data-student-number="${studentNumber}"
-        >Details</button>
+        >
+          Details
+        </button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -334,7 +189,8 @@ function renderStudentTable(students) {
 }
 
 /**
- * Attach click listeners to every “Details” button so the modal opens + populates.
+ * Attaches click listeners to all “Details” buttons in the table.
+ * When clicked, opens a modal and fills in that student's attendance history.
  */
 function attachDetailButtonListeners() {
   const buttons = document.querySelectorAll(".details-btn");
@@ -343,23 +199,20 @@ function attachDetailButtonListeners() {
       const studentNumber = btn.getAttribute("data-student-number");
       if (!studentNumber) return;
 
-      // Find the matching student object:
       const stu = allStudents.find((s) => s.studentNumber === studentNumber);
       if (!stu) return;
 
-      // 1) Show the modal:
+      // Show modal
       document
         .getElementById("studentDetailsContainer")
         .classList.remove("hidden");
-
-      // 2) Fill in studentNumber + active:
       document.getElementById("detailStudentNumber").textContent =
         stu.studentNumber;
       document.getElementById("detailActive").textContent = stu.active
         ? "Yes"
         : "No";
 
-      // 3) Fill in full attendance history:
+      // Fill attendance history table
       const tbody = document.getElementById("detailAttendanceBody");
       tbody.innerHTML = "";
       const sorted = (stu.attendances || []).slice().sort((a, b) => {
@@ -371,22 +224,39 @@ function attachDetailButtonListeners() {
         tbody.innerHTML = `
           <tr>
             <td colspan="5" class="px-3 py-2 text-sm text-gray-500 text-center">
-              Geen aanwezigheidsdata.
+              No attendance data.
             </td>
           </tr>`;
       } else {
         sorted.forEach((att) => {
+          const scheduled = att.scheduled || 0;
+          const logged = att.logged || 0;
           const pct =
-            att.scheduled > 0
-              ? Math.round((att.logged / att.scheduled) * 100)
-              : 0;
+            scheduled > 0 ? Math.round((logged / scheduled) * 100) : 0;
+
+          // Determine category label:
+          let category = "Geen Aanwezigheid";
+          if (pct >= 100) category = "Perfect";
+          else if (pct >= 95) category = "Excellent";
+          else if (pct >= 80) category = "Goed";
+          else if (pct >= 65) category = "Voldoende";
+          else if (pct >= 50) category = "Onvoldoende";
+          else if (pct > 0) category = "Kritiek";
+
+          // Convert to CSS class, e.g. “mark-goed”
+          const cssClass =
+            "mark-" + category.toLowerCase().replace(/\s+/g, "-");
+
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${att.year}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${att.week}</td>
-            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${att.scheduled}</td>
-            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${att.logged}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${scheduled}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${logged}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">${pct}%</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm">
+              <span class="category-badge ${cssClass}">${category}</span>
+            </td>
           `;
           tbody.appendChild(tr);
         });
@@ -394,3 +264,178 @@ function attachDetailButtonListeners() {
     });
   });
 }
+
+// --------------------------
+// Filter Logic
+// --------------------------
+
+/**
+ * Applies all active filters (search, week, year, min/max percentage)
+ * and re-renders the table with matching students.
+ */
+function applyFilters() {
+  // 1) Free-text search (studentNumber)
+  const query = document
+    .getElementById("studentSearch")
+    .value.trim()
+    .toLowerCase();
+
+  // 2) Week-filter (e.g. "2025-21")
+  const weekVal = document.getElementById("week-select").value;
+  let selYear = null,
+    selWeek = null;
+  if (weekVal) {
+    const [y, w] = weekVal.split("-").map((x) => parseInt(x, 10));
+    selYear = y;
+    selWeek = w;
+  }
+
+  // 3) Year-only filter (if selected)
+  const yearVal = document.getElementById("jaar-select").value;
+  const selYearOnly = yearVal ? parseInt(yearVal, 10) : null;
+
+  // 4) Min/Max percentage
+  const minRaw = document.getElementById("min-percentage").value;
+  const maxRaw = document.getElementById("max-percentage").value;
+  const minPct = isNaN(parseInt(minRaw, 10)) ? null : parseInt(minRaw, 10);
+  const maxPct = isNaN(parseInt(maxRaw, 10)) ? null : parseInt(maxRaw, 10);
+
+  const filtered = allStudents.filter((stu) => {
+    // A) Text search
+    if (query && !stu.studentNumber.toLowerCase().includes(query)) {
+      return false;
+    }
+
+    // B) Latest attendance record
+    let latestAtt = null;
+    (stu.attendances || []).forEach((a) => {
+      if (!latestAtt) {
+        latestAtt = a;
+      } else if (a.year > latestAtt.year) {
+        latestAtt = a;
+      } else if (a.year === latestAtt.year && a.week > latestAtt.week) {
+        latestAtt = a;
+      }
+    });
+
+    // If no attendance exists:
+    if (!latestAtt) {
+      if (selYear !== null && selWeek !== null) return false;
+      if (selYearOnly !== null) return false;
+      if (minPct !== null || maxPct !== null) return false;
+      return true;
+    }
+
+    // C) Week-filter
+    if (selYear !== null && selWeek !== null) {
+      if (
+        Number(latestAtt.year) !== selYear ||
+        Number(latestAtt.week) !== selWeek
+      ) {
+        return false;
+      }
+    }
+
+    // D) Year-only filter
+    if (selYearOnly !== null) {
+      if (Number(latestAtt.year) !== selYearOnly) {
+        return false;
+      }
+    }
+
+    // E) Percentage-range filter
+    if (minPct !== null || maxPct !== null) {
+      const scheduled = latestAtt.scheduled || 0;
+      const logged = latestAtt.logged || 0;
+      const pct = scheduled > 0 ? Math.round((logged / scheduled) * 100) : 0;
+      if (minPct !== null && pct < minPct) return false;
+      if (maxPct !== null && pct > maxPct) return false;
+    }
+
+    return true;
+  });
+
+  renderStudentTable(filtered);
+  attachDetailButtonListeners();
+}
+
+/**
+ * Sets up event listeners on all filter controls:
+ *   - #studentSearch
+ *   - #week-select
+ *   - #jaar-select
+ *   - #min-percentage
+ *   - #max-percentage
+ */
+function setupFiltersAndListeners() {
+  const searchInput = document.getElementById("studentSearch");
+  const weekSelect = document.getElementById("week-select");
+  const yearSelect = document.getElementById("jaar-select");
+  const minPctInput = document.getElementById("min-percentage");
+  const maxPctInput = document.getElementById("max-percentage");
+
+  [searchInput, weekSelect, yearSelect, minPctInput, maxPctInput].forEach(
+    (el) => {
+      if (!el) return;
+      el.addEventListener("input", applyFilters);
+      el.addEventListener("change", applyFilters);
+    }
+  );
+}
+
+// --------------------------
+// Initialization on Page Load
+// --------------------------
+
+let allStudents = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+  // 1) Fetch all students
+  axios
+    .get("http://145.14.158.244:8000/api/students")
+    .then((resp) => {
+      allStudents = resp.data.member || [];
+
+      // 2) Populate year- and week-select dropdowns
+      const { uniqueYears, uniqueYearWeeks } =
+        extractYearsAndWeeks(allStudents);
+
+      const yearSelect = document.getElementById("jaar-select");
+      yearSelect.innerHTML = `<option value="">Alle Jaren</option>`;
+      uniqueYears.forEach((yr) => {
+        yearSelect.innerHTML += `<option value="${yr}">${yr}</option>`;
+      });
+
+      const weekSelect = document.getElementById("week-select");
+      weekSelect.innerHTML = `<option value="">Alle Weken</option>`;
+      uniqueYearWeeks.forEach((str) => {
+        const [y, w] = str.split("-").map((x) => parseInt(x, 10));
+        weekSelect.innerHTML += `<option value="${str}">${y} – Week ${w}</option>`;
+      });
+
+      // 3) Initial render of the full table
+      renderStudentTable(allStudents);
+      attachDetailButtonListeners();
+      setupFiltersAndListeners();
+    })
+    .catch((err) => {
+      console.error("Error fetching /api/students:", err);
+      const tbody = document.getElementById("studentTableBody");
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="px-3 py-2 text-sm text-red-600 text-center">
+            Failed to load students.
+          </td>
+        </tr>`;
+    });
+
+  // 4) “Close” button for the details modal, if present
+  const closeBtn = document.getElementById("closeStudentDetails");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      document
+        .getElementById("studentDetailsContainer")
+        .classList.add("hidden");
+    });
+  }
+});
