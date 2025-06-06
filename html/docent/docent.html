@@ -80,7 +80,9 @@
       <!-- Import & Export Buttons Row -->
       <div class="flex items-center space-x-2">
         <input type="file" id="fileInput" accept=".xlsx" />
-        <button id="importBtn" class="bg-blue-600 text-white px-4 py-2 rounded">Importeer Excel</button>
+        <button id="importBtn" class="bg-blue-600 text-white px-4 py-2 rounded">
+          Importeer Excel
+        </button>
         <div id="status"></div>
 
         <button
@@ -498,58 +500,14 @@
           <h3 class="text-lg font-medium text-gray-700">Laatste Import Log</h3>
           <button
             id="openLogModal"
-            class="px-3 py-1 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            class="px-3 py-1 bg-indigo-600 text-white text-sm rounded-md …"
           >
             Vergroot Log
           </button>
         </div>
-        <div class="space-y-4">
-          <!-- Eerste log-entry -->
-          <div
-            class="flex flex-col md:flex-row md:items-center md:justify-between"
-          >
-            <div class="flex items-center space-x-2">
-              <span class="text-gray-800 font-medium"
-                >AAR_2025_W21_9f3a2c.xlsx</span
-              >
-              <span
-                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
-                >✓ Succesvol</span
-              >
-            </div>
-            <div class="flex space-x-4 text-sm text-gray-600 mt-2 md:mt-0">
-              <span>Rijen geïmporteerd: <strong>120</strong></span>
-              <span>Fouten: <strong>0</strong></span>
-              <a
-                href="#"
-                class="text-indigo-600 hover:text-indigo-900 font-medium"
-                >Details Bekijken</a
-              >
-            </div>
-          </div>
-          <!-- Tweede log-entry -->
-          <div
-            class="flex flex-col md:flex-row md:items-center md:justify-between"
-          >
-            <div class="flex items-center space-x-2">
-              <span class="text-gray-800 font-medium"
-                >AAR_2025_W20_ab12cd34.xlsx</span
-              >
-              <span
-                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800"
-                >! Waarschuwing</span
-              >
-            </div>
-            <div class="flex space-x-4 text-sm text-gray-600 mt-2 md:mt-0">
-              <span>Rijen geïmporteerd: <strong>115</strong></span>
-              <span>Fouten: <strong>2</strong></span>
-              <a
-                href="#"
-                class="text-indigo-600 hover:text-indigo-900 font-medium"
-                >Bekijk fouten</a
-              >
-            </div>
-          </div>
+        <!-- Give this <div> an id so JS can replace its contents dynamically: -->
+        <div id="importLogContainer" class="space-y-4">
+          <!-- (These placeholder entries can be removed once JS is populating dynamically) -->
         </div>
       </div>
     </div>
@@ -658,10 +616,11 @@
       </div>
     </div>
 
-    <!-- Load our JS files -->
-     <script src="/js/docent/import.js"></script>
+    <!-- Load JS files -->
+    <script src="/js/docent/import.js"></script>
     <script src="/js/docent/chart.js"></script>
     <script src="/js/docent/open_close_log.js"></script>
     <script src="/js/docent/student_fetch.js"></script>
+    <script src="/js/docent/log_fetch.js"></script>
   </body>
 </html>
