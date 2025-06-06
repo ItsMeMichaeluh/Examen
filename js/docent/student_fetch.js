@@ -128,29 +128,60 @@ function renderStudentTable(students) {
       }
     });
 
+    // Default placeholders
     let pctText = "—",
       logged = "—",
-      scheduled = "—";
+      scheduled = "—",
+      category = "Geen Aanwezigheid";
+
     if (latestAtt) {
       logged = latestAtt.logged;
       scheduled = latestAtt.scheduled;
       const pct = scheduled > 0 ? Math.round((logged / scheduled) * 100) : 0;
       pctText = pct + "%";
+
+      // Determine category label from percentage
+      if (pct >= 100) category = "Perfect";
+      else if (pct >= 95) category = "Excellent";
+      else if (pct >= 80) category = "Goed";
+      else if (pct >= 65) category = "Voldoende";
+      else if (pct >= 50) category = "Onvoldoende";
+      else if (pct > 0) category = "Kritiek";
+      else category = "Geen Aanwezigheid";
     }
+
+    // Convert category label into CSS class, e.g. "Goed" → "mark-goed"
+    const cssClass = "mark-" + category.toLowerCase().replace(/\s+/g, "-");
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${studentNumber}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${name}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">${pctText}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${logged}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${scheduled}</td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">—</td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+        ${studentNumber}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+        ${name}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">
+        ${pctText}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+        ${logged}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+        ${scheduled}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm">
+        <span class="category-badge ${cssClass}">
+          ${category}
+        </span>
+      </td>
       <td class="px-3 py-2 whitespace-nowrap text-right text-sm">
         <button
           class="details-btn text-indigo-600 hover:text-indigo-900 font-medium"
           data-student-number="${studentNumber}"
-        >Details</button>
+        >
+          Details
+        </button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -198,17 +229,34 @@ function attachDetailButtonListeners() {
           </tr>`;
       } else {
         sorted.forEach((att) => {
+          const scheduled = att.scheduled || 0;
+          const logged = att.logged || 0;
           const pct =
-            att.scheduled > 0
-              ? Math.round((att.logged / att.scheduled) * 100)
-              : 0;
+            scheduled > 0 ? Math.round((logged / scheduled) * 100) : 0;
+
+          // Determine category label:
+          let category = "Geen Aanwezigheid";
+          if (pct >= 100) category = "Perfect";
+          else if (pct >= 95) category = "Excellent";
+          else if (pct >= 80) category = "Goed";
+          else if (pct >= 65) category = "Voldoende";
+          else if (pct >= 50) category = "Onvoldoende";
+          else if (pct > 0) category = "Kritiek";
+
+          // Convert to CSS class, e.g. “mark-goed”
+          const cssClass =
+            "mark-" + category.toLowerCase().replace(/\s+/g, "-");
+
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${att.year}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${att.week}</td>
-            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${att.scheduled}</td>
-            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${att.logged}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${scheduled}</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${logged}</td>
             <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">${pct}%</td>
+            <td class="px-3 py-2 whitespace-nowrap text-sm">
+              <span class="category-badge ${cssClass}">${category}</span>
+            </td>
           `;
           tbody.appendChild(tr);
         });
