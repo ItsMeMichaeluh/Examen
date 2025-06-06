@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Pak studentNumber uit URL, default naar st2473322711
   const urlParams = new URLSearchParams(window.location.search);
-  const selectedStudentNumber = urlParams.get('studentNumber') || "st2473322711";
+  const selectedStudentNumber = urlParams.get('studentNumber') || "st1727751642";
 
   let aanwezigheidData = []; // Globale data om te filteren
 

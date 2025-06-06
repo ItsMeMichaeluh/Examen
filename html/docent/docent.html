@@ -270,6 +270,22 @@
           placeholder="Zoek met student #"
           class="border px-2 py-1 rounded-md"
         />
+
+          <div class="flex items-center space-x-2 my-4">
+            <input
+              type="text"
+              id="groupNameInput"
+              placeholder="Groepsnaam"
+              class="border px-3 py-2 rounded w-60"
+            />
+            <button
+              id="createGroupBtn"
+              class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Groep aanmaken
+            </button>
+          </div>
+
       </div>
 
       <!-- 3. Side-by-Side: Search + Table & Chart -->
@@ -648,5 +664,6 @@
     <script src="/js/docent/chart.js"></script>
     <script src="/js/docent/open_close_log.js"></script>
     <script src="/js/docent/student_fetch.js"></script>
+    <script src="/js/docent/groep.js"></script>
   </body>
 </html>
