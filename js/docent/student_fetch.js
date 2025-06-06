@@ -39,7 +39,7 @@ function extractYearsAndWeeks(students) {
 
 /**
  * Generates a fake “First Last” name from a studentNumber string.
- * Used so that every student row shows a plausible name.
+ * Used so that each student row shows a plausible name.
  */
 function generateFakeName(studentNumber) {
   const firstNames = [
@@ -89,13 +89,26 @@ function generateFakeName(studentNumber) {
   return `${firstNames[firstIndex]} ${lastNames[lastIndex]}`;
 }
 
+/**
+ * Given a percentage number 0–100, returns the category label.
+ */
+function getCategoryLabel(pct) {
+  if (pct >= 100) return "Perfect";
+  if (pct >= 95) return "Excellent";
+  if (pct >= 80) return "Goed";
+  if (pct >= 65) return "Voldoende";
+  if (pct >= 50) return "Onvoldoende";
+  if (pct > 0) return "Kritiek";
+  return "Geen Aanwezigheid";
+}
+
 // --------------------------
 // Rendering Functions
 // --------------------------
 
 /**
  * Renders an array of student objects into <tbody id="studentTableBody">.
- * Each row shows studentNumber, name, most recent percentage, logged, scheduled, and a "Details" button.
+ * Includes colored badge in the “Categorie” column.
  */
 function renderStudentTable(students) {
   const tbody = document.getElementById("studentTableBody");
@@ -116,7 +129,7 @@ function renderStudentTable(students) {
     const studentNumber = stu.studentNumber || "—";
     const name = generateFakeName(studentNumber);
 
-    // Find the latest attendance record
+    // Find latest attendance record
     let latestAtt = null;
     (stu.attendances || []).forEach((a) => {
       if (!latestAtt) {
@@ -128,7 +141,6 @@ function renderStudentTable(students) {
       }
     });
 
-    // Default placeholders
     let pctText = "—",
       logged = "—",
       scheduled = "—",
@@ -139,49 +151,27 @@ function renderStudentTable(students) {
       scheduled = latestAtt.scheduled;
       const pct = scheduled > 0 ? Math.round((logged / scheduled) * 100) : 0;
       pctText = pct + "%";
-
-      // Determine category label from percentage
-      if (pct >= 100) category = "Perfect";
-      else if (pct >= 95) category = "Excellent";
-      else if (pct >= 80) category = "Goed";
-      else if (pct >= 65) category = "Voldoende";
-      else if (pct >= 50) category = "Onvoldoende";
-      else if (pct > 0) category = "Kritiek";
-      else category = "Geen Aanwezigheid";
+      category = getCategoryLabel(pct);
     }
 
-    // Convert category label into CSS class, e.g. "Goed" → "mark-goed"
+    // Convert category to CSS class, e.g. “mark-goed”
     const cssClass = "mark-" + category.toLowerCase().replace(/\s+/g, "-");
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-        ${studentNumber}
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-        ${name}
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">
-        ${pctText}
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-        ${logged}
-      </td>
-      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-        ${scheduled}
-      </td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${studentNumber}</td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${name}</td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">${pctText}</td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${logged}</td>
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">${scheduled}</td>
       <td class="px-3 py-2 whitespace-nowrap text-sm">
-        <span class="category-badge ${cssClass}">
-          ${category}
-        </span>
+        <span class="category-badge ${cssClass}">${category}</span>
       </td>
       <td class="px-3 py-2 whitespace-nowrap text-right text-sm">
         <button
           class="details-btn text-indigo-600 hover:text-indigo-900 font-medium"
           data-student-number="${studentNumber}"
-        >
-          Details
-        </button>
+        >Details</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -189,7 +179,7 @@ function renderStudentTable(students) {
 }
 
 /**
- * Attaches click listeners to all “Details” buttons in the table.
+ * Attaches click listeners to all “Details” buttons in the student table.
  * When clicked, opens a modal and fills in that student's attendance history.
  */
 function attachDetailButtonListeners() {
@@ -223,7 +213,7 @@ function attachDetailButtonListeners() {
       if (sorted.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="5" class="px-3 py-2 text-sm text-gray-500 text-center">
+            <td colspan="6" class="px-3 py-2 text-sm text-gray-500 text-center">
               No attendance data.
             </td>
           </tr>`;
@@ -233,17 +223,7 @@ function attachDetailButtonListeners() {
           const logged = att.logged || 0;
           const pct =
             scheduled > 0 ? Math.round((logged / scheduled) * 100) : 0;
-
-          // Determine category label:
-          let category = "Geen Aanwezigheid";
-          if (pct >= 100) category = "Perfect";
-          else if (pct >= 95) category = "Excellent";
-          else if (pct >= 80) category = "Goed";
-          else if (pct >= 65) category = "Voldoende";
-          else if (pct >= 50) category = "Onvoldoende";
-          else if (pct > 0) category = "Kritiek";
-
-          // Convert to CSS class, e.g. “mark-goed”
+          const category = getCategoryLabel(pct);
           const cssClass =
             "mark-" + category.toLowerCase().replace(/\s+/g, "-");
 
@@ -270,18 +250,32 @@ function attachDetailButtonListeners() {
 // --------------------------
 
 /**
- * Applies all active filters (search, week, year, min/max percentage)
- * and re-renders the table with matching students.
+ * Applies all active filters: group, search, week, year, min/max percentage.
+ * Then re-renders the student table.
  */
 function applyFilters() {
-  // 1) Free-text search (studentNumber)
   const query = document
     .getElementById("studentSearch")
     .value.trim()
     .toLowerCase();
 
-  // 2) Week-filter (e.g. "2025-21")
-  const weekVal = document.getElementById("week-select").value;
+  // Group filter
+  const groupVal = document.getElementById("group-select").value; // e.g. "2" or ""
+  let groupStudentNumbers = null;
+  if (groupVal) {
+    // Find the group object whose @id ends in the selected number
+    const grp = allGroups.find((g) => {
+      const idStr = g["@id"].split("/").pop(); // last segment, e.g. "2"
+      return idStr === groupVal;
+    });
+    if (grp) {
+      // Build a Set of studentNumber strings for that group
+      groupStudentNumbers = new Set(grp.students.map((s) => s.studentNumber));
+    }
+  }
+
+  // Week filter
+  const weekVal = document.getElementById("week-select").value; // e.g. "2025-21"
   let selYear = null,
     selWeek = null;
   if (weekVal) {
@@ -290,23 +284,28 @@ function applyFilters() {
     selWeek = w;
   }
 
-  // 3) Year-only filter (if selected)
-  const yearVal = document.getElementById("jaar-select").value;
+  // Year-only filter
+  const yearVal = document.getElementById("jaar-select").value; // e.g. "2025"
   const selYearOnly = yearVal ? parseInt(yearVal, 10) : null;
 
-  // 4) Min/Max percentage
+  // Min/Max percentage
   const minRaw = document.getElementById("min-percentage").value;
   const maxRaw = document.getElementById("max-percentage").value;
   const minPct = isNaN(parseInt(minRaw, 10)) ? null : parseInt(minRaw, 10);
   const maxPct = isNaN(parseInt(maxRaw, 10)) ? null : parseInt(maxRaw, 10);
 
   const filtered = allStudents.filter((stu) => {
-    // A) Text search
+    // A) If group is selected, only include students in that group
+    if (groupStudentNumbers && !groupStudentNumbers.has(stu.studentNumber)) {
+      return false;
+    }
+
+    // B) Text search on studentNumber
     if (query && !stu.studentNumber.toLowerCase().includes(query)) {
       return false;
     }
 
-    // B) Latest attendance record
+    // C) Find latest attendance record
     let latestAtt = null;
     (stu.attendances || []).forEach((a) => {
       if (!latestAtt) {
@@ -326,7 +325,7 @@ function applyFilters() {
       return true;
     }
 
-    // C) Week-filter
+    // D) Week filter
     if (selYear !== null && selWeek !== null) {
       if (
         Number(latestAtt.year) !== selYear ||
@@ -336,14 +335,14 @@ function applyFilters() {
       }
     }
 
-    // D) Year-only filter
+    // E) Year-only filter
     if (selYearOnly !== null) {
       if (Number(latestAtt.year) !== selYearOnly) {
         return false;
       }
     }
 
-    // E) Percentage-range filter
+    // F) Percentage-range filter
     if (minPct !== null || maxPct !== null) {
       const scheduled = latestAtt.scheduled || 0;
       const logged = latestAtt.logged || 0;
@@ -361,6 +360,7 @@ function applyFilters() {
 
 /**
  * Sets up event listeners on all filter controls:
+ *   - #group-select
  *   - #studentSearch
  *   - #week-select
  *   - #jaar-select
@@ -368,19 +368,19 @@ function applyFilters() {
  *   - #max-percentage
  */
 function setupFiltersAndListeners() {
-  const searchInput = document.getElementById("studentSearch");
-  const weekSelect = document.getElementById("week-select");
-  const yearSelect = document.getElementById("jaar-select");
-  const minPctInput = document.getElementById("min-percentage");
-  const maxPctInput = document.getElementById("max-percentage");
-
-  [searchInput, weekSelect, yearSelect, minPctInput, maxPctInput].forEach(
-    (el) => {
-      if (!el) return;
-      el.addEventListener("input", applyFilters);
-      el.addEventListener("change", applyFilters);
-    }
-  );
+  [
+    "group-select",
+    "studentSearch",
+    "week-select",
+    "jaar-select",
+    "min-percentage",
+    "max-percentage",
+  ].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", applyFilters);
+    el.addEventListener("change", applyFilters);
+  });
 }
 
 // --------------------------
@@ -388,6 +388,7 @@ function setupFiltersAndListeners() {
 // --------------------------
 
 let allStudents = [];
+let allGroups = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   // 1) Fetch all students
@@ -413,7 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
         weekSelect.innerHTML += `<option value="${str}">${y} – Week ${w}</option>`;
       });
 
-      // 3) Initial render of the full table
+      // Initially render all students
       renderStudentTable(allStudents);
       attachDetailButtonListeners();
       setupFiltersAndListeners();
@@ -421,12 +422,33 @@ document.addEventListener("DOMContentLoaded", () => {
     .catch((err) => {
       console.error("Error fetching /api/students:", err);
       const tbody = document.getElementById("studentTableBody");
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="7" class="px-3 py-2 text-sm text-red-600 text-center">
-            Failed to load students.
-          </td>
-        </tr>`;
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="px-3 py-2 text-sm text-red-600 text-center">
+              Failed to load students.
+            </td>
+          </tr>`;
+      }
+    });
+
+  // 3) Fetch all groups and populate #group-select
+  axios
+    .get("http://145.14.158.244:8000/api/groups")
+    .then((resp) => {
+      allGroups = resp.data.member || [];
+
+      const groupSelect = document.getElementById("group-select");
+      if (!groupSelect) return;
+      groupSelect.innerHTML = `<option value="">Alle Groepen</option>`;
+      allGroups.forEach((g) => {
+        // Use g.id if you have a numeric id, or parse from @id
+        const idStr = g["@id"].split("/").pop(); // e.g. "1"
+        groupSelect.innerHTML += `<option value="${idStr}">${g.name}</option>`;
+      });
+    })
+    .catch((err) => {
+      console.error("Error fetching /api/groups:", err);
     });
 
   // 4) “Close” button for the details modal, if present
