@@ -65,7 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ✅ Studenten toevoegen aan geselecteerde groep
-    // ✅ Studenten toevoegen aan geselecteerde groep
   addToGroupBtn.addEventListener("click", async () => {
     const groupId = groupSelect.value;
 
@@ -88,8 +87,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch(`http://145.14.158.244:8000/api/groups/${groupId}/add-students`, {
         method: "PATCH",
         headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json"
+          "Content-Type": "application/merge-patch+json",
+          Accept: "application/ld+json",
         },
         body: JSON.stringify({ studentNumbers: studentNumbers })
       });
