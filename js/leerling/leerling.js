@@ -2,9 +2,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const apiUrl = "http://145.14.158.244:8000/api/students?page=1t";
   const tbody = document.getElementById('dataBody');
 
-  // Pak studentNumber uit URL, default naar st2473322711
+  // Pak studentNumber uit URL, default naar st1121615364
   const urlParams = new URLSearchParams(window.location.search);
   const selectedStudentNumber = urlParams.get('studentNumber') || "st1121615364";
+
+  // Laat studentnummer zien in de navbar
+  const studentNummerDisplay = document.getElementById('studentNummerDisplay');
+  if (studentNummerDisplay) {
+    studentNummerDisplay.textContent = `Studentnummer: ${selectedStudentNumber}`;
+  }
 
   let aanwezigheidData = []; // Globale data om te filteren
 
