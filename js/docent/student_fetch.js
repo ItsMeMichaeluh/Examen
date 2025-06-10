@@ -448,32 +448,4 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-  // 3) Fetch all groups and populate #group-select
-  axios
-    .get("http://145.14.158.244:8000/api/groups")
-    .then((resp) => {
-      allGroups = resp.data.member || [];
-
-      const groupSelect = document.getElementById("group-select");
-      if (!groupSelect) return;
-      groupSelect.innerHTML = `<option value="">Alle Groepen</option>`;
-      allGroups.forEach((g) => {
-        // Use g.id if you have a numeric id, or parse from @id
-        const idStr = g["@id"].split("/").pop(); // e.g. "1"
-        groupSelect.innerHTML += `<option value="${idStr}">${g.name}</option>`;
-      });
-    })
-    .catch((err) => {
-      console.error("Error fetching /api/groups:", err);
-    });
-
-  // 4) “Close” button for the details modal, if present
-  const closeBtn = document.getElementById("closeStudentDetails");
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      document
-        .getElementById("studentDetailsContainer")
-        .classList.add("hidden");
-    });
-  }
 });

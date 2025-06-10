@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Pak studentNumber uit URL, fallback op default
   const urlParams = new URLSearchParams(window.location.search);
-  const selectedStudentNumber = urlParams.get('studentNumber') || "st1727751642";
+  const selectedStudentNumber = urlParams.get('studentNumber') || "st3255555757";
 
   axios.get(apiUrl)
     .then(response => {
