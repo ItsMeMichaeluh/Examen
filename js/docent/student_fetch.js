@@ -404,21 +404,20 @@ function applyFilters() {
       return true;
     }
 
-    // D) Week filter
+    // Week filter
     if (selYear !== null && selWeek !== null) {
-      if (
-        Number(latestAtt.year) !== selYear ||
-        Number(latestAtt.week) !== selWeek
-      ) {
-        return false;
-      }
+      const hasAttendanceInSelectedWeek = (stu.attendances || []).some(
+        (a) => Number(a.year) === selYear && Number(a.week) === selWeek
+      );
+      if (!hasAttendanceInSelectedWeek) return false;
     }
 
-    // E) Year-only filter
+    //  Year-only filter
     if (selYearOnly !== null) {
-      if (Number(latestAtt.year) !== selYearOnly) {
-        return false;
-      }
+      const hasAttendanceInSelectedYear = (stu.attendances || []).some(
+        (a) => Number(a.year) === selYearOnly
+      );
+      if (!hasAttendanceInSelectedYear) return false;
     }
 
     // F) Percentage-range filter
