@@ -4,7 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Pak studentNumber uit URL, fallback op default
   const urlParams = new URLSearchParams(window.location.search);
-  const selectedStudentNumber = urlParams.get('studentNumber') || "st3255555757";
+  const selectedStudentNumber = urlParams.get('studentNumber') || "st1121615364";
+
+  // Laat studentnummer zien in de navbar
+  const studentNummerDisplay = document.getElementById('studentNummerDisplay');
+  if (studentNummerDisplay) {
+    studentNummerDisplay.textContent = `Studentnummer: ${selectedStudentNumber}`;
+  }
 
   axios.get(apiUrl)
     .then(response => {

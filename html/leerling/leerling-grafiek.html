@@ -11,12 +11,23 @@
 <body class="bg-gray-50 text-gray-800">
 
   <!-- Navbar -->
-  <nav class="bg-gray-800 p-4 shadow-md">
-    <div class="container mx-auto flex justify-end items-center space-x-3">
-      <span id="username" class="text-white font-medium">Michiel Kalteren</span>
+<nav class="bg-gray-800 p-4 shadow-md">
+  <div class="container mx-auto flex justify-between items-center">
+    <!-- Logo -->
+    <div class="flex items-center space-x-3">
+      <img src="img/logo.png" alt="Logo Progameer School" class="h-20 w-auto" />
+    </div>
+
+    <!-- Gebruiker -->
+    <div class="flex items-center space-x-3">
+      <div class="flex flex-col items-end">
+        <span class="text-white font-medium">Michiel Kalteren</span>
+        <span id="studentNummerDisplay" class="text-gray-300 text-sm"></span>
+      </div>
       <img src="https://i.pravatar.cc/40" alt="Profielfoto" class="w-10 h-10 rounded-full border-2 border-yellow-400" />
     </div>
-  </nav>
+  </div>
+</nav>
 
   <!-- Main container -->
   <div class="max-w-5xl mx-auto px-4 py-8">
