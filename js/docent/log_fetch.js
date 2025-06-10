@@ -107,9 +107,13 @@ Geüpload op: ${new Date(logDetails.createdAt).toLocaleString()}`);
                   alert("Geen content beschikbaar voor dit bestand.");
                   return;
                 }
-                const fileResp = await axios.get(
-                  `http://145.14.158.244:8000${contentUrl}`
+                // Open the file in a new tab
+                window.open(
+                  `http://145.14.158.244:8000${contentUrl}`,
+                  "_blank"
                 );
+
+                // Uncomment the above line to download the file directly
                 const fileContent = fileResp.data;
                 alert(`Inhoud van het logbestand:\n\n${fileContent}`);
               } catch (err) {
