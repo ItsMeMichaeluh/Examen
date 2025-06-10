@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      alert(`✅ ${studentNumbers.length} student(en) toegevoegd aan groep '${data.name}'.`);
+      alert(`✅ ${studentNumbers.length} student(en) toegevoegd aan groep.`);
     } catch (err) {
       console.error("Netwerkfout:", err);
       alert("❌ Netwerkfout bij toevoegen.");
