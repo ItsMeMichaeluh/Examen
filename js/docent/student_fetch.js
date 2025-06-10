@@ -108,7 +108,7 @@ function getCategoryLabel(pct) {
 
 /**
  * Renders an array of student objects into <tbody id="studentTableBody">.
- * Includes colored badge in the “Categorie” column.
+ * Includes colored badge in the “Categorie” column and an activate/deactivate button.
  */
 function renderStudentTable(students) {
   const tbody = document.getElementById("studentTableBody");
@@ -118,7 +118,7 @@ function renderStudentTable(students) {
   if (students.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" class="px-3 py-2 text-sm text-gray-500 text-center">
+        <td colspan="9" class="px-3 py-2 text-sm text-gray-500 text-center">
           No students found.
         </td>
       </tr>`;
@@ -132,20 +132,20 @@ function renderStudentTable(students) {
     // Find latest attendance record
     let latestAtt = null;
     (stu.attendances || []).forEach((a) => {
-      if (!latestAtt) {
-        latestAtt = a;
-      } else if (a.year > latestAtt.year) {
-        latestAtt = a;
-      } else if (a.year === latestAtt.year && a.week > latestAtt.week) {
+      if (
+        !latestAtt ||
+        a.year > latestAtt.year ||
+        (a.year === latestAtt.year && a.week > latestAtt.week)
+      ) {
         latestAtt = a;
       }
     });
 
+    // Calculate attendance %
     let pctText = "—",
       logged = "—",
       scheduled = "—",
       category = "Geen Aanwezigheid";
-
     if (latestAtt) {
       logged = latestAtt.logged;
       scheduled = latestAtt.scheduled;
@@ -153,44 +153,72 @@ function renderStudentTable(students) {
       pctText = pct + "%";
       category = getCategoryLabel(pct);
     }
-
-    // Convert category to CSS class, e.g. “mark-goed”
     const cssClass = "mark-" + category.toLowerCase().replace(/\s+/g, "-");
 
-const tr = document.createElement("tr");
-tr.innerHTML = `
-  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 flex items-center space-x-2">
-    <input type="checkbox" class="student-checkbox" data-student-number="${studentNumber}" />
-    <span>${studentNumber}</span>
-  </td>
-  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-    ${name}
-  </td>
-  <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">
-    ${pctText}
-  </td>
-  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-    ${logged}
-  </td>
-  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
-    ${scheduled}
-  </td>
-  <td class="px-3 py-2 whitespace-nowrap text-sm">
-    <span class="category-badge ${cssClass}">
-      ${category}
-    </span>
-  </td>
-  <td class="px-3 py-2 whitespace-nowrap text-right text-sm">
-    <button
-      class="details-btn text-indigo-600 hover:text-indigo-900 font-medium"
-      data-student-number="${studentNumber}"
-    >
-      Details
-    </button>
-  </td>
-`;
-tbody.appendChild(tr);
+    // Active toggle button
+    const isActive = stu.active;
+    const toggleLabel = isActive ? "Deactiveer" : "Activeer";
+    const toggleClass = isActive
+      ? "bg-red-500 hover:bg-red-600"
+      : "bg-green-500 hover:bg-green-600";
 
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <!-- Student # -->
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700 flex items-center space-x-2">
+        <input type="checkbox" class="student-checkbox" data-student-number="${studentNumber}" />
+        <span>${studentNumber}</span>
+      </td>
+
+      <!-- Fake Name -->
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+        ${name}
+      </td>
+
+      <!-- % -->
+      <td class="px-3 py-2 whitespace-nowrap text-sm font-semibold text-gray-800">
+        ${pctText}
+      </td>
+
+      <!-- Logged -->
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+        ${logged}
+      </td>
+
+      <!-- Scheduled -->
+      <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-700">
+        ${scheduled}
+      </td>
+
+      <!-- Category -->
+      <td class="px-3 py-2 whitespace-nowrap text-sm">
+        <span class="category-badge ${cssClass}">
+          ${category}
+        </span>
+      </td>
+
+      <!-- Details button -->
+      <td class="px-3 py-2 whitespace-nowrap text-right text-sm">
+        <button
+          class="details-btn text-indigo-600 hover:text-indigo-900 font-medium"
+          data-student-number="${studentNumber}"
+        >
+          Details
+        </button>
+      </td>
+
+      <!-- Active toggle -->
+      <td class="px-3 py-2 whitespace-nowrap text-sm">
+        <button
+          class="toggle-active-btn text-white px-3 py-1 rounded ${toggleClass}"
+          data-student-number="${studentNumber}"
+        >
+          ${toggleLabel}
+        </button>
+      </td>
+
+    `;
+    tbody.appendChild(tr);
   });
 }
 
@@ -256,6 +284,41 @@ function attachDetailButtonListeners() {
           `;
           tbody.appendChild(tr);
         });
+      }
+    });
+  });
+}
+
+function attachToggleButtons() {
+  document.querySelectorAll(".toggle-active-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const studentNumber = btn.dataset.studentNumber;
+      const stu = allStudents.find((s) => s.studentNumber === studentNumber);
+      if (!stu) return;
+
+      // Determine the right endpoint
+      const action = stu.active ? "stop" : "start";
+      try {
+        const resp = await axios.patch(
+          `http://145.14.158.244:8000/api/students/${studentNumber}/${action}`
+        );
+        // Update local state
+        stu.active = resp.data.active;
+        // Re-render
+        applyFilters(); // re-apply filters & redraw table
+        // If modal open for this student, update its “Active:” field
+        if (
+          document
+            .getElementById("studentDetailsContainer")
+            .classList.contains("hidden") === false
+        ) {
+          document.getElementById("detailActive").textContent = stu.active
+            ? "Yes"
+            : "No";
+        }
+      } catch (err) {
+        console.error(`Failed to ${action} student`, err);
+        alert("Er is een fout opgetreden. Probeer het opnieuw.");
       }
     });
   });
@@ -372,6 +435,7 @@ function applyFilters() {
 
   renderStudentTable(filtered);
   attachDetailButtonListeners();
+  attachToggleButtons();
 }
 
 /**
@@ -433,6 +497,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Initially render all students
       renderStudentTable(allStudents);
       attachDetailButtonListeners();
+      attachToggleButtons();
       setupFiltersAndListeners();
     })
     .catch((err) => {
