@@ -110,6 +110,7 @@ function getCategoryLabel(pct) {
  */
 function renderStudentTable(students) {
   const tbody = document.getElementById("studentTableBody");
+  // if student dont exist
   if (!tbody) return;
   tbody.innerHTML = "";
 
@@ -216,6 +217,7 @@ function renderStudentTable(students) {
       </td>
 
     `;
+    // Add the row to the table body dynamically
     tbody.appendChild(tr);
   });
 }
