@@ -1,5 +1,3 @@
-// js/docent/open_close_log.js
-
 document.addEventListener("DOMContentLoaded", () => {
   const openBtn = document.getElementById("openLogModal");
   const closeBtn = document.getElementById("closeLogModal");

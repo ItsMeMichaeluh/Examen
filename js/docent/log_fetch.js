@@ -1,5 +1,3 @@
-// js/docent/log_fetch.js
-
 /**
  * Given a raw log object, determine its filename, status label,
  * rowsImported, and errorsCount. Also extract the log’s @id for details.
@@ -8,10 +6,10 @@ function normalizeLogEntry(raw) {
   let mediaUrl = "";
   let filename = "Onbekend";
   let mediaObjectId = "";
-
+  //If the log has a mediaObject & And if it has a valid @id string (/api/media_objects/1).
   if (raw.mediaObject && typeof raw.mediaObject["@id"] === "string") {
     mediaUrl = raw.mediaObject["@id"];
-    mediaObjectId = raw.mediaObject["@id"]; // e.g. /api/media_objects/1
+    mediaObjectId = raw.mediaObject["@id"]; // /api/media_objects/1
     filename = raw.mediaObject.filePath || "Onbekend";
   }
 

@@ -55,7 +55,9 @@ function initAttendanceChart(initialData, initialLabels) {
  * Updates the chart with new data.
  */
 function updateAttendanceChart(newPercentages, newLabels) {
+  // Check if the chart is initialized
   if (!attendanceChart) return;
+  // Ensure newPercentages is an array of numbers
   if (newLabels && newLabels.length === 5) {
     attendanceChart.data.labels = newLabels;
   }
@@ -67,8 +69,8 @@ function updateAttendanceChart(newPercentages, newLabels) {
  * Handles changes in the week/year filters.
  */
 function handleFilterChange() {
-  // 1. Read selected week and year
-  const weekVal = document.getElementById("week-select").value; // e.g. "2025-21"
+  // Read selected week and year
+  const weekVal = document.getElementById("week-select").value;
   let selYear = null,
     selWeek = null;
   if (weekVal) {
@@ -77,10 +79,10 @@ function handleFilterChange() {
     selWeek = w;
   }
 
-  const yearVal = document.getElementById("jaar-select").value; // e.g. "2025"
+  const yearVal = document.getElementById("jaar-select").value;
   const selYearOnly = yearVal ? parseInt(yearVal, 10) : null;
 
-  // 2. Filter your students
+  // Filter your students
   const filteredStudents = allStudents.filter((student) => {
     if (!student.attendances) return false;
 
@@ -93,10 +95,10 @@ function handleFilterChange() {
     if (selYearOnly) {
       return student.attendances.some((a) => a.year === selYearOnly);
     }
-    return true; // No filter selected — include all students
+    return true; // No filter selected include all students
   });
 
-  // 3. Determine weeks to display (latest 5 weeks or selected week +/- 4)
+  // Determine weeks to display (latest 5 weeks or selected week +/- 4)
   let weekNumbers = [];
   let weekLabels = [];
   if (selWeek && selYear) {
@@ -111,13 +113,13 @@ function handleFilterChange() {
     weekNumbers = [1, 2, 3, 4, 5]; // placeholder
   }
 
-  // 4. Calculate averages
+  // Calculate averages
   const averages = calculateWeeklyAverages(filteredStudents, weekNumbers);
 
-  // 5. Update the chart
+  // Update the chart
   updateAttendanceChart(averages, weekLabels);
 
-  // 6. Update student table
+  // Update student table
   renderStudentTable(filteredStudents);
 }
 

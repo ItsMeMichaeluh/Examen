@@ -1,5 +1,3 @@
-// js/docent/student_fetch.js
-
 // --------------------------
 // Helper Functions
 // --------------------------
@@ -374,17 +372,17 @@ function applyFilters() {
   const maxPct = isNaN(parseInt(maxRaw, 10)) ? null : parseInt(maxRaw, 10);
 
   const filtered = allStudents.filter((stu) => {
-    // A) If group is selected, only include students in that group
+    // If group is selected, only include students in that group
     if (groupStudentNumbers && !groupStudentNumbers.has(stu.studentNumber)) {
       return false;
     }
 
-    // B) Text search on studentNumber
+    // Text search on studentNumber
     if (query && !stu.studentNumber.toLowerCase().includes(query)) {
       return false;
     }
 
-    // C) Find latest attendance record
+    // Find latest attendance record
     let latestAtt = null;
     (stu.attendances || []).forEach((a) => {
       if (!latestAtt) {
@@ -420,7 +418,7 @@ function applyFilters() {
       if (!hasAttendanceInSelectedYear) return false;
     }
 
-    // F) Percentage-range filter
+    // Percentage-range filter
     if (minPct !== null || maxPct !== null) {
       const scheduled = latestAtt.scheduled || 0;
       const logged = latestAtt.logged || 0;
@@ -470,15 +468,15 @@ let allStudents = [];
 let allGroups = [];
 
 document.addEventListener("DOMContentLoaded", () => {
-  // 1) Fetch all students
+  // Fetch all students
   axios
     .get("http://145.14.158.244:8000/api/students")
     .then((resp) => {
       allStudents = resp.data.member || [];
 
-      // 2) Populate year- and week-select dropdowns
+      // analyzes all students'Populate year- and week-select dropdowns
       const { uniqueYears, uniqueYearWeeks } =
-        extractYearsAndWeeks(allStudents);
+        extractYearsAndWeeks(allStudents); // Extract unique years and year-week pairs
 
       const yearSelect = document.getElementById("jaar-select");
       yearSelect.innerHTML = `<option value="">Alle Jaren</option>`;
@@ -511,5 +509,4 @@ document.addEventListener("DOMContentLoaded", () => {
           </tr>`;
       }
     });
-
 });
